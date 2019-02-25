@@ -2,11 +2,11 @@ import argparse
 import sys
 #import pdb
 import gym
-
-
 from gym import wrappers, logger
 
-from random_agent import Agent
+from random_agent import random_agent as Agent1
+from only_shooting_agent import only_shooting_agent as Agent
+
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     outdir = 'random-agent-results'
 
 
-    env.seed(0)
+    #env.seed(0)
     agent = Agent(env.action_space)
 
     episode_count = 100
@@ -38,10 +38,11 @@ if __name__ == '__main__':
     special_data = {}
     special_data['ale.lives'] = 3
     ob = env.reset()
-
     while not done:
+        
         action = agent.act(ob, reward, done)
         ob, reward, done, x = env.step(action)
+        print(x)
         score += reward
         env.render()
      
