@@ -1,11 +1,12 @@
 import argparse
 import sys
-#import pdb
+import pdb
 import gym
 from gym import wrappers, logger
 
 from random_agent import random_agent as Agent1
-from only_shooting_agent import only_shooting_agent as Agent
+from only_shooting_agent import only_shooting_agent as Agent2
+from agent import Agent
 
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
@@ -42,7 +43,6 @@ if __name__ == '__main__':
         
         action = agent.act(ob, reward, done)
         ob, reward, done, x = env.step(action)
-        print(x)
         score += reward
         env.render()
      

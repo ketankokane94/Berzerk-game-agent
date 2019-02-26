@@ -48,8 +48,9 @@ class only_shooting_agent(object):
         self.done_ += 1
         self.actions_performed += 1
         self.reward += reward 
-        if self.actions_performed == 2000:
+        #if self.actions_performed == 2000:
             
+
         print(self.actions_performed,'actions performed')
         return randint(10, 17)
 
