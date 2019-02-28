@@ -5,6 +5,15 @@ import random
 import gym
 from gym import wrappers, logger
 
+
+PLAYER_WIDTH = 3
+PLAYER_HEIGHT = 5
+MAKE_ACTION = 10
+
+PLAYER = 44
+BLANK = 11
+WALL = 22
+ROBOT = 55
 class Agent(object):
     """The world's simplest agent!"""
     def __init__(self, action_space):
@@ -19,21 +28,21 @@ class Agent(object):
             sum_ += value
 
         if sum_ == 0:
-            return 11#'B'
+            return BLANK#'B'
             # blank
         elif sum_ == 390:
-            return 22#'W'
+            return WALL#'W'
             # wall
         elif sum_ == 538:
             return 33#'S'
             # score
         elif sum_ == 513:
             print('player inserted')
-            return 44#'P'
+            return PLAYER#'P'
             # player
         else:
             # robot
-            return 55#'R'
+            return ROBOT#'R'
 
     def analyzeEnvironment(self, observe):
         for row in range(len(observe)):
@@ -42,10 +51,10 @@ class Agent(object):
         return observe
 
     def getplayerpos(self, state):
-        for row in range(len(state)):
-            for col in range(len(state[row])):
+        for row in range(0,len(state),PLAYER_WIDTH):
+            for col in range(0,len(state[row]),PLAYER_HEIGHT):
                 #44 is player
-                if state[row][col][0] == 44:
+                if state[row][col][0] == PLAYER:
                     return row, col
 
     def checkForRobot(self, state, player_x, player_y):
@@ -54,7 +63,7 @@ class Agent(object):
         '''
         for row in range(len(state)):
             for col in range(len(state[row])):
-                if state[row][col][0] == 55:
+                if state[row][col][0] == ROBOT:
                     #55 is robot
                     if row == player_x:
                         return 'y', row, col
@@ -238,7 +247,7 @@ class Agent(object):
                     action = 0 #self.determineMotion(state, player_x, player_y)
 
         return action
-        #return self.action_space.sample()
+
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
