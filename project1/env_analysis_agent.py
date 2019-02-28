@@ -5,15 +5,6 @@ import random
 import gym
 from gym import wrappers, logger
 
-
-PLAYER_WIDTH = 3
-PLAYER_HEIGHT = 5
-MAKE_ACTION = 10
-
-PLAYER = 44
-BLANK = 11
-WALL = 22
-ROBOT = 55
 class Agent(object):
     """The world's simplest agent!"""
     def __init__(self, action_space):
@@ -28,21 +19,21 @@ class Agent(object):
             sum_ += value
 
         if sum_ == 0:
-            return BLANK#'B'
+            return 11#'B'
             # blank
         elif sum_ == 390:
-            return WALL#'W'
+            return 22#'W'
             # wall
         elif sum_ == 538:
             return 33#'S'
             # score
         elif sum_ == 513:
             print('player inserted')
-            return PLAYER#'P'
+            return 44#'P'
             # player
         else:
             # robot
-            return ROBOT#'R'
+            return 55#'R'
 
     def analyzeEnvironment(self, observe):
         for row in range(len(observe)):
@@ -51,10 +42,10 @@ class Agent(object):
         return observe
 
     def getplayerpos(self, state):
-        for row in range(0,len(state),PLAYER_WIDTH):
-            for col in range(0,len(state[row]),PLAYER_HEIGHT):
+        for row in range(len(state)):
+            for col in range(len(state[row])):
                 #44 is player
-                if state[row][col][0] == PLAYER:
+                if state[row][col][0] == 44:
                     return row, col
 
     def checkForRobot(self, state, player_x, player_y):
@@ -63,7 +54,7 @@ class Agent(object):
         '''
         for row in range(len(state)):
             for col in range(len(state[row])):
-                if state[row][col][0] == ROBOT:
+                if state[row][col][0] == 55:
                     #55 is robot
                     if row == player_x:
                         return 'y', row, col
@@ -81,7 +72,7 @@ class Agent(object):
         while state[x][y][0] == 44:
             x += 1
         # At this point we are at the bottom extreme of the player
-        if state[x][y][0] == 22:
+        if state[x + 1][y][0] == 22:
             down_wall = 1
 
         return down_wall
@@ -96,7 +87,7 @@ class Agent(object):
         while state[x][y][0] == 44:
             x -= 1
         # At this point we are at the top extreme of the player
-        if state[x][y][0] == 22:
+        if state[x - 1][y][0] == 22:
             up_wall = 1
 
         return up_wall
@@ -111,7 +102,7 @@ class Agent(object):
         while state[x][y][0] == 44:
             y += 1
         # At this point we are at the right extreme of the player
-        if state[x][y][0] == 22:
+        if state[x][y + 2][0] == 11 and state[x][y + 3][0] == 22:
             right_wall = 1
 
         return right_wall
@@ -124,16 +115,21 @@ class Agent(object):
 
         # For left wall
         while state[x][y][0] == 44:
+            print(state[x][y][0])
             y -= 1
+        print("final check")
+        print(state[x][y - 2][0])
         # At this point we are at the left extreme of the player
-        if state[x][y][0] == 22:
+        if state[x][y - 2][0] == 11 and state[x][y - 3][0] == 22:
+            # One left movement covers about 4 to 5 pixels of the foot hence we need to
+            # maintain those many pixels in between which is 3 pixels from position considered (body pixel).
             left_wall = 1
 
         return left_wall
 
     def determineMotion(self, state, player_x, player_y):
         # We move clockwise
-
+        action = 0
         if self.wallToCheck == 'left':
             # Try to move along left wall by getting to it first and then up
 
@@ -213,7 +209,7 @@ class Agent(object):
         action = 1
 
         # check_if_actions_needs_to_performed()
-        if self.actions_num > 24 and self.actions_num % 10 == 0:
+        if self.actions_num > 24:# and self.actions_num % 10 == 0:
             # do we really need to calulate actions after every move, what is we calculate after every 3 moves
             state = self.analyzeEnvironment(observation)
 
@@ -244,10 +240,10 @@ class Agent(object):
                 else :
                     # No bot found in line with player
                     # how to know that if all bots are dead ?
-                    action = 0 #self.determineMotion(state, player_x, player_y)
+                    action = self.determineMotion(state, player_x + 6, player_y)
 
         return action
-
+        #return self.action_space.sample()
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
@@ -289,3 +285,4 @@ if __name__ == '__main__':
     # Close the env and write monitor result info to disk
     print ("Your score: %d" % score)
     env.close()
+
