@@ -278,7 +278,13 @@ class Agent(object):
                     # No bot found in line with player
                     # how to know that if all bots are dead ?
                     print('wall detection')
-                    action = self.determineMotion(state, player_x + 6, player_y)
+                    #action = self.determineMotion(state, player_x + 6, player_y)
+
+                    up = self.checkForUpWall(state, player_x, player_y)
+                    if up == 0:
+                        action = 2
+                    else:
+                        action = 3
 
         return action
         #return self.action_space.sample()
