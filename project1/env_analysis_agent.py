@@ -14,13 +14,9 @@ class Agent(object):
         self.wallToCheck = 'left'
 
     def formState(self, observation):
-        #print(observation)
         sum_ = 0
-
         for value in observation:
             sum_ += value
-
-        #print(sum_)
 
         if sum_ == 0:
             return 11#'B'
@@ -48,11 +44,14 @@ class Agent(object):
     def getplayerpos(self, state):
         for row in range(len(state)):
             for col in range(len(state[row])):
+                #44 is player
                 if state[row][col][0] == 44:
-                    #44 is player
                     return row, col
 
     def checkForRobot(self, state, player_x, player_y):
+        '''
+        if only cecking the robot position in row or col then why iterate over the entire array 
+        '''
         for row in range(len(state)):
             for col in range(len(state[row])):
                 if state[row][col][0] == 55:
@@ -200,25 +199,17 @@ class Agent(object):
                     self.wallToCheck = 'left'
         return action
 
-    # You should modify this function
     def act(self, observation, reward, done):
         self.actions_num += 1
         action = 1
 
-        if self.actions_num == 24:
-            state = self.analyzeEnvironment(observation)
-
-            f = open('sumsssss.txt', 'a')
-            for row in range(len(state)):
-                for col in range(len(state[row])):
-                    f.write(str(state[row][col][0]))
-                f.write('\n')
-            f.close()
-
-        if self.actions_num > 24:
+        # check_if_actions_needs_to_performed()
+        if self.actions_num > 24 and self.actions_num % 10 == 0:
+            # do we really need to calulate actions after every move, what is we calculate after every 3 moves
             state = self.analyzeEnvironment(observation)
 
             # Determine action
+            # why have we kept it by default to NOOP
             action = 0
 
             player_x, player_y = self.getplayerpos(state)
@@ -229,7 +220,6 @@ class Agent(object):
                 found, robot_x, robot_y = self.checkForRobot(state, player_x, player_y)
                 if found == 'x':
                     # Found vertically adjacent to player
-
                     if robot_x > player_x:
                         action = 13 #downfire
                     else:
@@ -244,7 +234,8 @@ class Agent(object):
                         action = 12  # leftfire
                 else :
                     # No bot found in line with player
-                    action = 0#self.determineMotion(state, player_x, player_y)
+                    # how to know that if all bots are dead ?
+                    action = 0 #self.determineMotion(state, player_x, player_y)
 
         return action
         #return self.action_space.sample()
