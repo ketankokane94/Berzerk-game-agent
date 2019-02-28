@@ -4,6 +4,7 @@ import random
 #import pdb
 import gym
 from gym import wrappers, logger
+import numpy
 
 PLAYER_WIDTH = 3
 PLAYER_HEIGHT = 5
@@ -37,7 +38,7 @@ class Agent(object):
             return 33#'S'
             # score
         elif sum_ == 513:
-            print('player inserted')
+            #print('player inserted')
             return PLAYER#'P'
             # player
         else:
@@ -51,20 +52,29 @@ class Agent(object):
         return observe
 
     def getplayerpos(self, state):
-        for row in range(0,len(state),PLAYER_WIDTH):
-            for col in range(0,len(state[row]),PLAYER_HEIGHT):
+        for row in range(len(state)):
+            for col in range(len(state[row])):
                 #44 is player
                 if state[row][col][0] == PLAYER:
                     return row, col
-
-    def wall_if_present_on_x_axis(self, player_x,player_y,col,state):
-        for i in range(player_y, col+1,3):
+        
+    def wall_if_present_on_x_axis(self, player_x,player_y,robot_y,state):
+        if robot_y < player_y:
+            increment = -2
+        else:
+            increment = 2
+        
+        for i in range(player_y, robot_y+1,increment):
             if state[player_x][i][0] == WALL:
                 return True
         return False
     
-    def wall_if_present_on_y_axis(self, player_x,player_y,row,state):
-        for i in range(player_x, row+1,3):
+    def wall_if_present_on_y_axis(self, player_x,player_y,robot_x,state):
+        if robot_x < player_x:
+            increment = -2
+        else:
+            increment = 2
+        for i in range(player_x, robot_x+1,increment):
             if state[i][player_y][0] == WALL:
                 return True
         return False
@@ -76,12 +86,15 @@ class Agent(object):
         '''
         for row in range(len(state)):
             for col in range(len(state[row])):
-                if state[row][col][0] == 55:
+                if state[row][col][0] == ROBOT:
                     #55 is robot
                     if row == player_x:
-                        return 'y', row, col
+                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
+                            return 'y', row, col
                     if col == player_y:
-                        return 'x', row, col
+
+                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
+                            return 'x', row, col
         return 'not found', 0, 0
 
     def checkForDownWall(self, state, player_x, player_y):
@@ -136,13 +149,12 @@ class Agent(object):
         y = player_y
 
         # For left wall
-        while state[x][y][0] == 44:
+        while state[x][y][0] == PLAYER:
             print(state[x][y][0])
             y -= 1
-        print("final check")
-        print(state[x][y - 2][0])
+
         # At this point we are at the left extreme of the player
-        if state[x][y - 2][0] == 11 and state[x][y - 3][0] == 22:
+        if state[x][y - 2][0] == BLANK and state[x][y - 3][0] == WALL:
             # One left movement covers about 4 to 5 pixels of the foot hence we need to
             # maintain those many pixels in between which is 3 pixels from position considered (body pixel).
             left_wall = 1
@@ -228,13 +240,16 @@ class Agent(object):
 
     def act(self, observation, reward, done):
         self.actions_num += 1
-        action = 1
+        action = 0
 
         # check_if_actions_needs_to_performed()
-        if self.actions_num > 24:# and self.actions_num % 10 == 0:
+        if self.actions_num > 24 and (self.actions_num % 10 == 0):
             # do we really need to calulate actions after every move, what is we calculate after every 3 moves
             state = self.analyzeEnvironment(observation)
-
+            #print(state[0][0][0])
+            if not isinstance(state,numpy.ndarray):
+                
+                return action
             # Determine action
             # why have we kept it by default to NOOP
             action = 0
@@ -262,6 +277,7 @@ class Agent(object):
                 else :
                     # No bot found in line with player
                     # how to know that if all bots are dead ?
+                    print('wall detection')
                     action = self.determineMotion(state, player_x + 6, player_y)
 
         return action
