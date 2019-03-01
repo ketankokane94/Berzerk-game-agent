@@ -15,6 +15,7 @@ BLANK = 11
 WALL = 22
 ROBOT = 55
 
+
 class Agent(object):
     """The world's simplest agent!"""
     def __init__(self, action_space):
@@ -22,6 +23,7 @@ class Agent(object):
         self.actions_num = 0
         # Keeps track of which wall to move along
         self.wallToCheck = 'left'
+        self.SKIP_CONSTANT = 10
 
     def formState(self, observation):
         sum_ = 0
@@ -58,23 +60,22 @@ class Agent(object):
                 if state[row][col][0] == PLAYER:
                     return row, col
         
-    def wall_if_present_on_x_axis(self, player_x,player_y,robot_y,state):
+    def wall_on_horizontal_axis(self, player_x,player_y,robot_y,state):
         if robot_y < player_y:
-            increment = -2
+            increment = -4
         else:
-            increment = 2
-        
-        for i in range(player_y, robot_y+1,increment):
+            increment = 4
+        for i in range(player_y, robot_y, increment):
             if state[player_x][i][0] == WALL:
                 return True
         return False
     
-    def wall_if_present_on_y_axis(self, player_x,player_y,robot_x,state):
+    def wall_on_vertical_axis(self, player_x, player_y, robot_x,state):
         if robot_x < player_x:
-            increment = -2
+            increment = -4
         else:
-            increment = 2
-        for i in range(player_x, robot_x+1,increment):
+            increment = 4
+        for i in range(player_x, robot_x, increment):
             if state[i][player_y][0] == WALL:
                 return True
         return False
@@ -84,16 +85,18 @@ class Agent(object):
         '''
         if only cecking the robot position in row or col then why iterate over the entire array 
         '''
-        for row in range(len(state)):
-            for col in range(len(state[row])):
+        for row in range(4,len(state),2):
+            for col in range(4,len(state[row]),2):
                 if state[row][col][0] == ROBOT:
                     #55 is robot
                     if row == player_x:
-                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
+                        # horizontal match
+                        print(player_x,player_y,row,col)
+                        if not self.wall_on_horizontal_axis(player_x+3,player_y,col,state):
                             return 'y', row, col
                     if col == player_y:
-
-                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
+                        # vertical match 
+                        if not self.wall_on_vertical_axis(player_x,player_y,row,state):
                             return 'x', row, col
         return 'not found', 0, 0
 
@@ -243,12 +246,14 @@ class Agent(object):
         action = 0
 
         # check_if_actions_needs_to_performed()
-        if self.actions_num > 24 and (self.actions_num % 10 == 0):
+        if self.actions_num > 24 and (self.actions_num % self.SKIP_CONSTANT == 0):
             # do we really need to calulate actions after every move, what is we calculate after every 3 moves
+            if self.SKIP_CONSTANT != 1:
+                self.SKIP_CONSTANT -= 1
+
             state = self.analyzeEnvironment(observation)
             #print(state[0][0][0])
-            if not isinstance(state,numpy.ndarray):
-                
+            if not isinstance(state,numpy.ndarray):    
                 return action
             # Determine action
             # why have we kept it by default to NOOP
@@ -277,7 +282,7 @@ class Agent(object):
                 else :
                     # No bot found in line with player
                     # how to know that if all bots are dead ?
-                    print('wall detection')
+                    #print('wall detection')
                     #action = self.determineMotion(state, player_x + 6, player_y)
 
                     up = self.checkForUpWall(state, player_x, player_y)
