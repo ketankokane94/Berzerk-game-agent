@@ -1,7 +1,7 @@
 import argparse
 import sys
 import random
-#import pdb
+# import pdb
 import gym
 from gym import wrappers, logger
 import numpy
@@ -18,11 +18,18 @@ BLANK = 11
 WALL = 22
 ROBOT = 55
 
+ROBOT_PIXELS = 72
+
+
 class Agent(object):
     """The world's simplest agent!"""
+
     def __init__(self, action_space):
         self.action_space = action_space
         self.actions_num = 0
+        self.robot_count = 0
+        # Increments at start too hence start with -1
+        self.level_count = -1
         # Keeps track of which wall to move along
         self.wallToCheck = 'left'
 
@@ -32,71 +39,74 @@ class Agent(object):
             sum_ += value
 
         if sum_ == 0:
-            return BLANK#'B'
+            return BLANK  # 'B'
             # blank
         elif sum_ == 390:
-            return WALL#'W'
+            return WALL  # 'W'
             # wall
         elif sum_ == 538:
-            return 33#'S'
+            return 33  # 'S'
             # score
         elif sum_ == 513:
-            #print('player inserted')
-            return PLAYER#'P'
+            # print('player inserted')
+            return PLAYER  # 'P'
             # player
         else:
             # robot
-            return ROBOT#'R'
+            self.robot_count += 1
+            return ROBOT  # 'R'
 
     def analyzeEnvironment(self, observe):
+
         for row in range(len(observe)):
             for col in range(len(observe[row])):
                 observe[row][col] = int(self.formState(observe[row][col]))
+
         return observe
 
     def getplayerpos(self, state):
         for row in range(len(state)):
             for col in range(len(state[row])):
-                #44 is player
+                # 44 is player
                 if state[row][col][0] == PLAYER:
                     return row, col
-        
-    def wall_if_present_on_x_axis(self, player_x,player_y,robot_y,state):
+
+    def wall_if_present_on_x_axis(self, player_x, player_y, robot_y, state):
         if robot_y < player_y:
             increment = -2
         else:
             increment = 2
-        
-        for i in range(player_y, robot_y+1,increment):
+
+        for i in range(player_y, robot_y + 1, increment):
             if state[player_x][i][0] == WALL:
                 return True
         return False
-    
-    def wall_if_present_on_y_axis(self, player_x,player_y,robot_x,state):
+
+    def wall_if_present_on_y_axis(self, player_x, player_y, robot_x, state):
         if robot_x < player_x:
             increment = -2
         else:
             increment = 2
-        for i in range(player_x, robot_x+1,increment):
+        for i in range(player_x, robot_x + 1, increment):
             if state[i][player_y][0] == WALL:
                 return True
         return False
-        
+
     def checkForRobot(self, state, player_x, player_y):
 
         '''
-        if only cecking the robot position in row or col then why iterate over the entire array 
+        if only cecking the robot position in row or col then why iterate over the entire array
         '''
         for row in range(len(state)):
             for col in range(len(state[row])):
                 if state[row][col][0] == ROBOT:
-                    #55 is robot
+                    # 55 is robot
                     if row == player_x:
-                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
+                        if not self.wall_if_present_on_x_axis(player_x, player_y, col, state):
                             return 'y', row, col
                     if col == player_y:
 
-                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
+                        if not self.wall_if_present_on_x_axis(player_x, player_y, col, state):
                             return 'x', row, col
         return 'not found', 0, 0
 
@@ -135,33 +145,26 @@ class Agent(object):
     '''def checkForUpWall(self, state, player_x, player_y):
         up_wall = 0
         buffer_pixels = 6
-
         x = player_x
         y = player_y
-
         # For top wall
         while state[x][y][0] == PLAYER:
             print(state[x][y][0])
             x -= 1
-
         #print(state[x - buffer_pixels][y][0])
-
         # At this point we are at the top extreme of the player
         if state[x - buffer_pixels + 1][y][0] == BLANK and state[x - buffer_pixels][y][0] == WALL:
             up_wall = 1
         elif state[x - buffer_pixels][y][0] == BLANK:
             # If gap is not as big as player then its a wall
             count_pixels = 0
-
             while state[x - buffer_pixels][y][0] == BLANK:
                 y += 1
                 count_pixels += 1
                 if count_pixels == PLAYER_WIDTHPIXELS:
                     break
-
             if count_pixels < PLAYER_WIDTHPIXELS:
                 up_wall = 1
-
         return up_wall'''
 
     def checkForRightWall(self, state, player_x, player_y):
@@ -201,7 +204,7 @@ class Agent(object):
 
         # For left wall
         while state[x][y][0] == PLAYER:
-            #print(state[x][y][0])
+            # print(state[x][y][0])
             y -= 1
 
         # At this point we are at the left extreme of the player
@@ -331,10 +334,23 @@ class Agent(object):
         # check_if_actions_needs_to_performed()
         if self.actions_num > 24 and (self.actions_num % 10 == 0):
             # do we really need to calulate actions after every move, what is we calculate after every 3 moves
+
+            # robot count stores number of 55 pixels in the array
+            previous_count = self.robot_count
+
+            self.robot_count = 0
+
             state = self.analyzeEnvironment(observation)
-            #print(state[0][0][0])
-            if not isinstance(state,numpy.ndarray):
-                
+
+            #print('Robot count : ' + str(self.robot_count))
+
+            # If robot_count has increased then definitely new level
+            if self.robot_count - previous_count >= ROBOT_PIXELS:
+                self.level_count += 1
+                print('Levels done : ' + str(self.level_count))
+
+            # print(state[0][0][0])
+            if not isinstance(state, numpy.ndarray):
                 return action
             # Determine action
             # why have we kept it by default to NOOP
@@ -355,8 +371,7 @@ class Agent(object):
                 if player_found == 1:
                     break
 
-
-            #player_x, player_y = self.getplayerpos(state)
+            # player_x, player_y = self.getplayerpos(state)
 
             if player_x != 0 and player_y != 0:
                 # Find a robot in line with bot.
@@ -365,9 +380,9 @@ class Agent(object):
                 if found == 'x':
                     # Found vertically adjacent to player
                     if robot_x > player_x:
-                        action = 13 #downfire
+                        action = 13  # downfire
                     else:
-                        action = 10 #upfire
+                        action = 10  # upfire
 
                 elif found == 'y':
                     # Found horizontally adjacent to player
@@ -376,10 +391,10 @@ class Agent(object):
                         action = 11  # rightfire
                     else:
                         action = 12  # leftfire
-                else :
+                else:
                     # No bot found in line with player
                     # how to know that if all bots are dead ?
-                    print('wall detection')
+                    #print('wall detection')
                     action = self.determineMotion(state, player_x, player_y)
 
                     '''up = self.checkForUpWall(state, player_x, player_y)
@@ -389,7 +404,8 @@ class Agent(object):
                         action = 3'''
 
         return action
-        #return self.action_space.sample()
+        # return self.action_space.sample()
+
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
 ## ANOTHER MAIN PROGRAM
@@ -410,7 +426,6 @@ if __name__ == '__main__':
     # like: tempfile.mkdtemp().
     outdir = 'random-agent-results'
 
-
     env.seed(0)
     agent = Agent(env.action_space)
 
@@ -422,13 +437,11 @@ if __name__ == '__main__':
     special_data['ale.lives'] = 3
     ob = env.reset()
     while not done:
-        
         action = agent.act(ob, reward, done)
         ob, reward, done, x = env.step(action)
         score += reward
         env.render()
-     
-    # Close the env and write monitor result info to disk
-    print ("Your score: %d" % score)
-    env.close()
 
+    # Close the env and write monitor result info to disk
+    print("Your score: %d" % score)
+    env.close()
