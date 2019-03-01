@@ -102,6 +102,7 @@ class Agent(object):
 
     def checkForDownWall(self, state, player_x, player_y):
         down_wall = 0
+        buffer_pixels = 1
 
         x = player_x
         y = player_y
@@ -110,13 +111,14 @@ class Agent(object):
         while state[x][y][0] == PLAYER:
             x += 1
         # At this point we are at the bottom extreme of the player
-        if state[x + 3][y][0] == WALL:
+        if state[x + buffer_pixels][y][0] == WALL:
             down_wall = 1
 
         return down_wall
 
     def checkForUpWall(self, state, player_x, player_y):
         up_wall = 0
+        buffer_pixels = 1
 
         x = player_x
         y = player_y
@@ -125,7 +127,7 @@ class Agent(object):
         while state[x][y][0] == PLAYER:
             x -= 1
         # At this point we are at the top extreme of the player
-        if state[x - 1][y][0] == WALL:
+        if state[x - buffer_pixels][y][0] == WALL:
             up_wall = 1
 
         return up_wall
