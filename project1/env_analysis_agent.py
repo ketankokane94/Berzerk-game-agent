@@ -23,7 +23,7 @@ class Agent(object):
         self.actions_num = 0
         # Keeps track of which wall to move along
         self.wallToCheck = 'left'
-        self.SKIP_CONSTANT = 10
+        self.SKIP_CONSTANT = 12
 
     def formState(self, observation):
         sum_ = 0
@@ -54,6 +54,8 @@ class Agent(object):
         return observe
 
     def getplayerpos(self, state):
+        print(type(state[0]),type(state[0][0]),type(state))
+
         for row in range(len(state)):
             for col in range(len(state[row])):
                 #44 is player
@@ -62,9 +64,9 @@ class Agent(object):
         
     def wall_on_horizontal_axis(self, player_x,player_y,robot_y,state):
         if robot_y < player_y:
-            increment = -4
+            increment = -2
         else:
-            increment = 4
+            increment = 2
         for i in range(player_y, robot_y, increment):
             if state[player_x][i][0] == WALL:
                 return True
@@ -72,9 +74,9 @@ class Agent(object):
     
     def wall_on_vertical_axis(self, player_x, player_y, robot_x,state):
         if robot_x < player_x:
-            increment = -4
+            increment = -2
         else:
-            increment = 4
+            increment = 2
         for i in range(player_x, robot_x, increment):
             if state[i][player_y][0] == WALL:
                 return True
@@ -85,14 +87,13 @@ class Agent(object):
         '''
         if only cecking the robot position in row or col then why iterate over the entire array 
         '''
-        for row in range(4,len(state),2):
-            for col in range(4,len(state[row]),2):
+        for row in range(len(state)):
+            for col in range(len(state[row])):
                 if state[row][col][0] == ROBOT:
                     #55 is robot
                     if row == player_x:
                         # horizontal match
-                        print(player_x,player_y,row,col)
-                        if not self.wall_on_horizontal_axis(player_x+3,player_y,col,state):
+                        if not self.wall_on_horizontal_axis(player_x,player_y,col,state):
                             return 'y', row, col
                     if col == player_y:
                         # vertical match 
@@ -248,18 +249,21 @@ class Agent(object):
         # check_if_actions_needs_to_performed()
         if self.actions_num > 24 and (self.actions_num % self.SKIP_CONSTANT == 0):
             # do we really need to calulate actions after every move, what is we calculate after every 3 moves
-            if self.SKIP_CONSTANT != 1:
-                self.SKIP_CONSTANT -= 1
+            
 
             state = self.analyzeEnvironment(observation)
-            #print(state[0][0][0])
-            if not isinstance(state,numpy.ndarray):    
-                return action
             # Determine action
-            # why have we kept it by default to NOOP
+            
             action = 0
-
-            player_x, player_y = self.getplayerpos(state)
+            player_x =  0
+            player_y = 0
+            
+            for row in range(len(state)):
+                for col in range(len(state[row])):
+                    #44 is player
+                    if state[row][col][0] == PLAYER:
+                        player_x =  row
+                        player_y = col
 
             if player_x != 0 and player_y != 0:
                 # Find a robot in line with bot.
