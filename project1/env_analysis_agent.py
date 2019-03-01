@@ -222,6 +222,50 @@ class Agent(object):
 
         return left_wall
 
+    def tryUpwards(self, up):
+        if up == 0:
+            # Move up
+            action = 2
+        else:
+            # Move right
+            action = 3
+            # Set wall to move along as up
+            self.wallToCheck = 'up'
+        return action
+
+    def tryDownwards(self, down):
+        if down == 0:
+            # Move down
+            action = 5
+        else:
+            # Move left
+            action = 4
+            # Set wall to move along as down
+            self.wallToCheck = 'down'
+        return action
+
+    def tryLeftMotion(self, left):
+        if left == 0:
+            # Move left
+            action = 4
+        else:
+            # Move up
+            action = 2
+            # Set wall to move along as left
+            self.wallToCheck = 'left'
+        return action
+
+    def tryRightMotion(self, right):
+        if right == 0:
+            # Move right
+            action = 3
+        else:
+            # Move down
+            action = 5
+            # Set wall to move along as right
+            self.wallToCheck = 'right'
+        return action
+
     def determineMotion(self, state, player_x, player_y):
         # We move clockwise
         action = 0
@@ -234,15 +278,10 @@ class Agent(object):
                 # Move left
                 action = 4
             else:
+                # Move upwards if left wall present
                 up = self.checkForUpWall(state, player_x, player_y)
-                if up == 0:
-                    # Move up
-                    action = 2
-                else:
-                    # Move right
-                    action = 3
-                    # Set wall to move along as up
-                    self.wallToCheck = 'up'
+                action = self.tryUpwards(up)
+
         elif self.wallToCheck == 'right':
             # Try to move along right wall by getting to it first and then down
 
@@ -252,15 +291,10 @@ class Agent(object):
                 # Move right
                 action = 3
             else:
+                # Move downwards if right wall present
                 down = self.checkForDownWall(state, player_x, player_y)
-                if down == 0:
-                    # Move down
-                    action = 5
-                else:
-                    # Move left
-                    action = 4
-                    # Set wall to move along as down
-                    self.wallToCheck = 'down'
+                action = self.tryDownwards(down)
+
         elif self.wallToCheck == 'up':
             # Try to move along top wall by getting to it first and then right
 
@@ -270,15 +304,10 @@ class Agent(object):
                 # Move up
                 action = 2
             else:
+                # Move right if top wall present
                 right = self.checkForRightWall(state, player_x, player_y)
-                if right == 0:
-                    # Move right
-                    action = 3
-                else:
-                    # Move down
-                    action = 5
-                    # Set wall to move along as right
-                    self.wallToCheck = 'right'
+                action = self.tryRightMotion(right)
+
         elif self.wallToCheck == 'down':
             # Try to move along bottom wall by getting to it first and then left
 
@@ -288,15 +317,9 @@ class Agent(object):
                 # Move down
                 action = 5
             else:
+                # Move left if bottom wall present
                 left = self.checkForLeftWall(state, player_x, player_y)
-                if left == 0:
-                    # Move left
-                    action = 4
-                else:
-                    # Move up
-                    action = 2
-                    # Set wall to move along as left
-                    self.wallToCheck = 'left'
+                action = self.tryLeftMotion(left)
         return action
 
     def act(self, observation, reward, done):
