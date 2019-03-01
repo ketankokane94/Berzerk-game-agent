@@ -6,6 +6,9 @@ import gym
 from gym import wrappers, logger
 import numpy
 
+PLAYER_WIDTHPIXELS = 5
+PLAYER_HEIGHTPIXELS = 20
+
 PLAYER_WIDTH = 3
 PLAYER_HEIGHT = 5
 MAKE_ACTION = 10
@@ -15,7 +18,6 @@ BLANK = 11
 WALL = 22
 ROBOT = 55
 
-
 class Agent(object):
     """The world's simplest agent!"""
     def __init__(self, action_space):
@@ -23,7 +25,6 @@ class Agent(object):
         self.actions_num = 0
         # Keeps track of which wall to move along
         self.wallToCheck = 'left'
-        self.SKIP_CONSTANT = 12
 
     def formState(self, observation):
         sum_ = 0
@@ -54,30 +55,29 @@ class Agent(object):
         return observe
 
     def getplayerpos(self, state):
-        print(type(state[0]),type(state[0][0]),type(state))
-
         for row in range(len(state)):
             for col in range(len(state[row])):
                 #44 is player
                 if state[row][col][0] == PLAYER:
                     return row, col
         
-    def wall_on_horizontal_axis(self, player_x,player_y,robot_y,state):
+    def wall_if_present_on_x_axis(self, player_x,player_y,robot_y,state):
         if robot_y < player_y:
             increment = -2
         else:
             increment = 2
-        for i in range(player_y, robot_y, increment):
+        
+        for i in range(player_y, robot_y+1,increment):
             if state[player_x][i][0] == WALL:
                 return True
         return False
     
-    def wall_on_vertical_axis(self, player_x, player_y, robot_x,state):
+    def wall_if_present_on_y_axis(self, player_x,player_y,robot_x,state):
         if robot_x < player_x:
             increment = -2
         else:
             increment = 2
-        for i in range(player_x, robot_x, increment):
+        for i in range(player_x, robot_x+1,increment):
             if state[i][player_y][0] == WALL:
                 return True
         return False
@@ -92,12 +92,11 @@ class Agent(object):
                 if state[row][col][0] == ROBOT:
                     #55 is robot
                     if row == player_x:
-                        # horizontal match
-                        if not self.wall_on_horizontal_axis(player_x,player_y,col,state):
+                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
                             return 'y', row, col
                     if col == player_y:
-                        # vertical match 
-                        if not self.wall_on_vertical_axis(player_x,player_y,row,state):
+
+                        if not self.wall_if_present_on_x_axis(player_x,player_y,col,state):
                             return 'x', row, col
         return 'not found', 0, 0
 
@@ -108,10 +107,10 @@ class Agent(object):
         y = player_y
 
         # For bottom wall
-        while state[x][y][0] == 44:
+        while state[x][y][0] == PLAYER:
             x += 1
         # At this point we are at the bottom extreme of the player
-        if state[x + 1][y][0] == 22:
+        if state[x + 3][y][0] == WALL:
             down_wall = 1
 
         return down_wall
@@ -123,45 +122,103 @@ class Agent(object):
         y = player_y
 
         # For top wall
-        while state[x][y][0] == 44:
+        while state[x][y][0] == PLAYER:
             x -= 1
         # At this point we are at the top extreme of the player
-        if state[x - 1][y][0] == 22:
+        if state[x - 1][y][0] == WALL:
             up_wall = 1
 
         return up_wall
 
+    '''def checkForUpWall(self, state, player_x, player_y):
+        up_wall = 0
+        buffer_pixels = 6
+
+        x = player_x
+        y = player_y
+
+        # For top wall
+        while state[x][y][0] == PLAYER:
+            print(state[x][y][0])
+            x -= 1
+
+        #print(state[x - buffer_pixels][y][0])
+
+        # At this point we are at the top extreme of the player
+        if state[x - buffer_pixels + 1][y][0] == BLANK and state[x - buffer_pixels][y][0] == WALL:
+            up_wall = 1
+        elif state[x - buffer_pixels][y][0] == BLANK:
+            # If gap is not as big as player then its a wall
+            count_pixels = 0
+
+            while state[x - buffer_pixels][y][0] == BLANK:
+                y += 1
+                count_pixels += 1
+                if count_pixels == PLAYER_WIDTHPIXELS:
+                    break
+
+            if count_pixels < PLAYER_WIDTHPIXELS:
+                up_wall = 1
+
+        return up_wall'''
+
     def checkForRightWall(self, state, player_x, player_y):
         right_wall = 0
+        buffer_pixels = 4
 
         x = player_x
         y = player_y
 
         # For right wall
-        while state[x][y][0] == 44:
+        while state[x][y][0] == PLAYER:
             y += 1
         # At this point we are at the right extreme of the player
-        if state[x][y + 2][0] == 11 and state[x][y + 3][0] == 22:
+        if state[x][y + buffer_pixels - 1][0] == BLANK and state[x][y + buffer_pixels][0] == WALL:
             right_wall = 1
+        elif state[x][y + buffer_pixels][0] == BLANK:
+            # If gap is not as big as player then its a wall
+            count_pixels = 0
+
+            while state[x][y + buffer_pixels][0] == BLANK:
+                x += 1
+                count_pixels += 1
+                if count_pixels == PLAYER_HEIGHTPIXELS:
+                    break
+
+            if count_pixels < PLAYER_HEIGHTPIXELS:
+                right_wall = 1
 
         return right_wall
 
     def checkForLeftWall(self, state, player_x, player_y):
         left_wall = 0
+        buffer_pixels = 4
 
         x = player_x
         y = player_y
 
         # For left wall
         while state[x][y][0] == PLAYER:
-            print(state[x][y][0])
+            #print(state[x][y][0])
             y -= 1
 
         # At this point we are at the left extreme of the player
-        if state[x][y - 2][0] == BLANK and state[x][y - 3][0] == WALL:
+        if state[x][y - buffer_pixels + 1][0] == BLANK and state[x][y - buffer_pixels][0] == WALL:
             # One left movement covers about 4 to 5 pixels of the foot hence we need to
-            # maintain those many pixels in between which is 3 pixels from position considered (body pixel).
+            # maintain those many pixels in between which is 4 pixels from position considered (head top pixel).
             left_wall = 1
+        elif state[x][y - buffer_pixels][0] == BLANK:
+            # If gap is not as big as player then its a wall
+            count_pixels = 0
+
+            while state[x][y - buffer_pixels][0] == BLANK:
+                x += 1
+                count_pixels += 1
+                if count_pixels == PLAYER_HEIGHTPIXELS:
+                    break
+
+            if count_pixels < PLAYER_HEIGHTPIXELS:
+                left_wall = 1
 
         return left_wall
 
@@ -247,23 +304,34 @@ class Agent(object):
         action = 0
 
         # check_if_actions_needs_to_performed()
-        if self.actions_num > 24 and (self.actions_num % self.SKIP_CONSTANT == 0):
+        if self.actions_num > 24 and (self.actions_num % 10 == 0):
             # do we really need to calulate actions after every move, what is we calculate after every 3 moves
-            
-
             state = self.analyzeEnvironment(observation)
+            #print(state[0][0][0])
+            if not isinstance(state,numpy.ndarray):
+                
+                return action
             # Determine action
-            
+            # why have we kept it by default to NOOP
             action = 0
-            player_x =  0
+
             player_y = 0
-            
+            player_x = 0
+
+            player_found = 0
             for row in range(len(state)):
                 for col in range(len(state[row])):
-                    #44 is player
+                    # 44 is player
                     if state[row][col][0] == PLAYER:
-                        player_x =  row
+                        player_x = row
                         player_y = col
+                        player_found = 1
+                        break
+                if player_found == 1:
+                    break
+
+
+            #player_x, player_y = self.getplayerpos(state)
 
             if player_x != 0 and player_y != 0:
                 # Find a robot in line with bot.
@@ -286,14 +354,14 @@ class Agent(object):
                 else :
                     # No bot found in line with player
                     # how to know that if all bots are dead ?
-                    #print('wall detection')
-                    #action = self.determineMotion(state, player_x + 6, player_y)
+                    print('wall detection')
+                    action = self.determineMotion(state, player_x, player_y)
 
-                    up = self.checkForUpWall(state, player_x, player_y)
+                    '''up = self.checkForUpWall(state, player_x, player_y)
                     if up == 0:
                         action = 2
                     else:
-                        action = 3
+                        action = 3'''
 
         return action
         #return self.action_space.sample()
