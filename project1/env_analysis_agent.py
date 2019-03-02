@@ -1,7 +1,4 @@
 import argparse
-import sys
-import random
-
 import gym
 from gym import wrappers, logger
 import numpy
