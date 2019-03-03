@@ -343,7 +343,7 @@ class Perceiving_Agent(object):
                     else:
                         self.skip = 10
                     action = self.determineMotion( player_x, player_y)
-        return action,self.level_count
+        return action
 
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
