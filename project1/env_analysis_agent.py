@@ -15,11 +15,11 @@ ROBOT = 55
 ROBOT_PIXELS = 72
 
 
-class Agent(object):
+class Perceiving_Agent(object):
     """The world's simplest agent!"""
 
     def __init__(self, action_space):
-        self.skip = 2
+        self.skip = 10
         self.envrionment_representation = [[None]*160 for _ in range(210)]
         self.action_space = action_space
         self.actions_num = 0
@@ -333,12 +333,17 @@ class Agent(object):
                 found, robot_x, robot_y = self.checkForRobot(player_x+6,
                                                              player_y+1)
                 if found != 'not found':
-                    self.skip = 8
+                    self.skip = 10
                     action = self.fireAction(found, player_x,player_y,robot_x,robot_y)
                 else:
-                    self.skip = 2
+                    if self.robot_count == 0:
+                        #print('dead')
+                        self.skip = 1
+
+                    else:
+                        self.skip = 10
                     action = self.determineMotion( player_x, player_y)
-        return action
+        return action,self.level_count
 
 
 ## YOU MAY NOT MODIFY ANYTHING BELOW THIS LINE OR USE
