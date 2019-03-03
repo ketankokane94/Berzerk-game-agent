@@ -8,7 +8,4 @@ class random_agent(object):
 
     # You should modify this function
     def act(self, observation, reward, done):
-        self.actions_performed += 1
-        self.reward += reward 
-        print(self.actions_performed,'actions performed')
         return self.action_space.sample()
