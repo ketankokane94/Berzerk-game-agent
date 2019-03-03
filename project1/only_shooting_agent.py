@@ -1,5 +1,4 @@
 from random import randint
-import numpy as np
 
 class only_shooting_agent(object):
     """Agent with unlimited supply of bullets"""
@@ -33,7 +32,12 @@ class only_shooting_agent(object):
         self.action_space = action_space
     
     def save_oberservation_to_text_file(self, observation):
-        #np.savetxt('ob.txt', observation, fmt="%s")
+        """
+        function used to print the 2d matric to a file and try to analyse it
+        :param observation:
+        :return:
+        """
+
         f = open('sums.txt','a')
         for rows in observation:
             for col in rows:
@@ -43,15 +47,6 @@ class only_shooting_agent(object):
 
     # You should modify this function
     def act(self, observation, reward, done):
-        if self.done_ ==  24 :
-            self.save_oberservation_to_text_file(observation)
-        self.done_ += 1
-        self.actions_performed += 1
-        self.reward += reward 
-        #if self.actions_performed == 2000:
-            
-
-        print(self.actions_performed,'actions performed')
         return randint(10, 17)
 
 
